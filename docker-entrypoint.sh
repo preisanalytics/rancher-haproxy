@@ -68,7 +68,7 @@ if [ "$1" == 'haproxy' ]; then
   # Start the metadata service config generator
   if [ "${DISABLE_METADATA}" == "false" ]; then
     echo "[INFO]: starting rancher metadata service config generator"
-    python /gen-haproxy-map.py --apihost "${RANCHER_API_HOST}" --apiversion "${RANCHER_API_VERSION}" --label "${RANCHER_LABEL}" --domain "${STACK_DOMAIN}" --domainmap "${HAPROXY_DOMAIN_MAP}" --backends "${HAPROXY_BACKEND_CONFIG}" &
+    python /gen-haproxy-map.py --apihost "${RANCHER_API_HOST}" --apiversion "${RANCHER_API_VERSION}" --label "${RANCHER_LABEL}" --tag "${RANCHER_TAG}" --domain "${STACK_DOMAIN}" --domainmap "${HAPROXY_DOMAIN_MAP}" --backends "${HAPROXY_BACKEND_CONFIG}" &
 
     # Give it a few seconds to generate the host otherwise it will respin and try again
     sleep 5
