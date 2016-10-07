@@ -14,7 +14,7 @@ def main(args):
     containers = get_containers(apiurl)
     aliases = get_aliases(apiurl)
     if containers:
-      (backends, domainmaps) = generate_config(args.label, containers, aliases)
+      (backends, domainmaps) = generate_config(args.label, containers, aliases, args.tag)
       update_config('backends', backends, args.backends)
       update_config('domainmaps', domainmaps, args.domainmap)
 
@@ -81,35 +81,56 @@ def update_config(config_type, data, output_file):
   else:
     os.rename(tmpfile, output_file)
 
-def generate_config(label, containers, aliases):
+def belogs_to_load_balancer(container, label, tag):
+  label_value = json.loads(container[u'labels'][unicode(label)])
+  if tag == '':
+    return True
+  else:
+    if label_value.__class__.__name__ == 'int':
+      return False
+    if tag in label_value[u'tags']:
+      return True
+  return False
+
+def port_from_label_value(label_value):
+  label_value = json.loads(str(label_value))
+  if label_value.__class__.__name__ == 'int':
+    return label_value
+  else:
+    return label_value[u'port']
+
+
+
+def generate_config(label, containers, aliases, tag):
   backends   = {}
   domainmaps = {}
   for container in containers:
     if unicode(label) in container[u'labels']:
-      stack_name   = container[u'stack_name']
-      service_name = container[u'service_name']
-      primary_ip   = container[u'primary_ip']
-      state        = container[u'state']
-      uuid         = container[u'uuid']
-      port         = container[u'labels'][unicode(label)]
-      fqdn         = '{}.{}'.format(stack_name, args.domain)
-      service_id   = '{}-{}'.format(service_name, uuid)
+      if belogs_to_load_balancer(container, label, tag):
+        stack_name   = container[u'stack_name']
+        service_name = container[u'service_name']
+        primary_ip   = container[u'primary_ip']
+        state        = container[u'state']
+        uuid         = container[u'uuid']
+        port         = port_from_label_value(container[u'labels'][unicode(label)])
+        fqdn         = '{}.{}'.format(stack_name, args.domain)
+        service_id   = '{}-{}'.format(service_name, uuid)
 
-      if not primary_ip:
-        print "[WARNING]: stack_name: {} container_uuid: {} does not yet have an ip address, skipping this container".format(stack_name, uuid)
-        continue
+        if not primary_ip:
+          print "[WARNING]: stack_name: {} container_uuid: {} does not yet have an ip address, skipping this container".format(stack_name, uuid)
+          continue
 
-      # Add stack name domain map
-      domainmaps[fqdn] = stack_name
-      # Add aliases domain map if required
-      if stack_name in aliases:
-        for alias in aliases[stack_name]:
-          fqdn = '{}.{}'.format(alias, args.domain)
-          domainmaps[fqdn] = stack_name
-      try:
-        backends[stack_name][service_id] = {'ip': primary_ip, 'port': port }
-      except KeyError:
-        backends[stack_name] = { service_id: { 'ip': primary_ip, 'port': port } }
+        # Add stack name domain map
+        domainmaps[fqdn] = stack_name
+        # Add aliases domain map if required
+        if stack_name in aliases:
+          for alias in aliases[stack_name]:
+            fqdn = '{}.{}'.format(alias, args.domain)
+            domainmaps[fqdn] = stack_name
+        try:
+          backends[stack_name][service_id] = {'ip': primary_ip, 'port': port }
+        except KeyError:
+          backends[stack_name] = { service_id: { 'ip': primary_ip, 'port': port } }
 
   return (backends, domainmaps)
 
@@ -122,6 +143,7 @@ if __name__ == "__main__":
   parser.add_argument('--backends',   required=True,        help='Where to store the haproxy backends file.')
   parser.add_argument('--label',      required=True,        help='What rancher label to use to find containers.')
   parser.add_argument('--interval',   default=10, type=int, help='How often to generate the config.')
+  parser.add_argument('--tag',        default='',         help='What tag does a container need to be registerd by the proxy')
   args = parser.parse_args()
 
   main(args)
