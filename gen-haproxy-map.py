@@ -81,7 +81,7 @@ def update_config(config_type, data, output_file):
   else:
     os.rename(tmpfile, output_file)
 
-def belogs_to_load_balancer(container, label, tag):
+def belongs_to_load_balancer(container, label, tag):
   label_value = json.loads(container[u'labels'][unicode(label)])
   if tag == '':
     return True
@@ -106,7 +106,7 @@ def generate_config(label, containers, aliases, tag):
   domainmaps = {}
   for container in containers:
     if unicode(label) in container[u'labels']:
-      if belogs_to_load_balancer(container, label, tag):
+      if belongs_to_load_balancer(container, label, tag):
         stack_name   = container[u'stack_name']
         service_name = container[u'service_name']
         primary_ip   = container[u'primary_ip']
