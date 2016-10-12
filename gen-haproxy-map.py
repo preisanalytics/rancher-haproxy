@@ -82,7 +82,10 @@ def update_config(config_type, data, output_file):
     os.rename(tmpfile, output_file)
 
 def belogs_to_load_balancer(container, label, tag):
-  label_value = json.loads(container[u'labels'][unicode(label)])
+  try:
+    label_value = json.loads(container[u'labels'][unicode(label)])
+  except Exception as e:
+    print "[ERROR]: get_containers failed with exception: {}".format(e)
   if tag == '':
     return True
   else:
@@ -93,7 +96,10 @@ def belogs_to_load_balancer(container, label, tag):
   return False
 
 def port_from_label_value(label_value):
-  label_value = json.loads(str(label_value))
+  try:
+    label_value = json.loads(str(label_value))
+  except Exception as e:
+    print "[ERROR]: get_containers failed with exception: {}".format(e)
   if label_value.__class__.__name__ == 'int':
     return label_value
   else:
