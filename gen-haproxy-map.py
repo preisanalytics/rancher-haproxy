@@ -85,7 +85,7 @@ def belogs_to_load_balancer(container, label, tag):
   try:
     label_value = json.loads(container[u'labels'][unicode(label)])
   except Exception as e:
-    print "[ERROR]: get_containers failed with exception: {}".format(e)
+    print "[ERROR]: get_label_value failed with exception: {}".format(e)
   if tag == '':
     return True
   else:
@@ -99,7 +99,7 @@ def port_from_label_value(label_value):
   try:
     label_value = json.loads(str(label_value))
   except Exception as e:
-    print "[ERROR]: get_containers failed with exception: {}".format(e)
+    print "[ERROR]: get_label_value failed with exception: {}".format(e)
   if label_value.__class__.__name__ == 'int':
     return label_value
   else:
