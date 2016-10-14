@@ -86,6 +86,7 @@ def belongs_to_load_balancer(container, label, tag):
     label_value = json.loads(container[u'labels'][unicode(label)])
   except Exception as e:
     print "[ERROR]: get_label_value failed with exception: {}".format(e)
+    return False
   if tag == '':
     return True
   else:
