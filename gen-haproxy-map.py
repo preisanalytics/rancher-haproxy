@@ -85,7 +85,7 @@ def belongs_to_load_balancer(container, label, tag):
   try:
     label_value = json.loads(container[u'labels'][unicode(label)])
   except Exception as e:
-    print "[ERROR]: get_label_value failed with exception: {}".format(e)
+    print "[ERROR]: belongs_to_load_balancer: {} get_label_value failed with exception: {}".format(container[u'stack_name'], e)
     return False
   if tag == '':
     return True
@@ -96,11 +96,11 @@ def belongs_to_load_balancer(container, label, tag):
       return True
   return False
 
-def port_from_label_value(label_value):
+def port_from_label_value(container, label_value):
   try:
     label_value = json.loads(str(label_value))
   except Exception as e:
-    print "[ERROR]: get_label_value failed with exception: {}".format(e)
+    print "[ERROR]: port_from_label_value: {} get_label_value failed with exception: {}".format(container[u'stack_name'], e)
   if label_value.__class__.__name__ == 'int':
     return label_value
   else:
@@ -119,7 +119,7 @@ def generate_config(label, containers, aliases, tag):
         primary_ip   = container[u'primary_ip']
         state        = container[u'state']
         uuid         = container[u'uuid']
-        port         = port_from_label_value(container[u'labels'][unicode(label)])
+        port         = port_from_label_value(container, container[u'labels'][unicode(label)])
         fqdn         = '{}.{}'.format(stack_name, args.domain)
         service_id   = '{}-{}'.format(service_name, uuid)
 
